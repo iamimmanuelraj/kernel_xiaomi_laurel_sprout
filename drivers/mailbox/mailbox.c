@@ -86,6 +86,7 @@ exit:
 	spin_unlock_irqrestore(&chan->lock, flags);
 
 	return err;
+        return err;
 }
 
 static void msg_submit(struct mbox_chan *chan)
@@ -93,6 +94,10 @@ static void msg_submit(struct mbox_chan *chan)
 	int err = 0;
 
 	/*
+	unsigned long flags;
+	int err = 0;
+
+        /*
 	 * If the controller returns -EAGAIN, then it means, our spinlock
 	 * here is preventing the controller from receiving its interrupt,
 	 * that would help clear the controller channels that are currently
