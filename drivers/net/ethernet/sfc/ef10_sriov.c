@@ -417,6 +417,10 @@ static int efx_ef10_pci_sriov_disable(struct efx_nic *efx, bool force)
 	struct pci_dev *dev = efx->pci_dev;
 	unsigned int vfs_assigned = pci_vfs_assigned(dev);
 	int rc = 0;
+	struct efx_ef10_nic_data *nic_data = efx->nic_data;
+	unsigned int vfs_assigned = 0;
+
+	vfs_assigned = pci_vfs_assigned(dev);
 
 	if (vfs_assigned && !force) {
 		netif_info(efx, drv, efx->net_dev, "VFs are assigned to guests; "
@@ -424,10 +428,15 @@ static int efx_ef10_pci_sriov_disable(struct efx_nic *efx, bool force)
 		return -EBUSY;
 	}
 
-	if (!vfs_assigned)
+	if (!vfs_assigned) {
+		for (i = 0; i < efx->vf_count; i++)
+			nic_data->vf[i].pci_dev = NULL;
 		pci_disable_sriov(dev);
 	else
 		rc = -EBUSY;
+	} else {
+		rc = -EBUSY;
+	}
 
 	efx_ef10_sriov_free_vf_vswitching(efx);
 	efx->vf_count = 0;
