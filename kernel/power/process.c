@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * drivers/power/process.c - Functions for starting/stopping processes on 
+ * drivers/power/process.c - Functions for starting/stopping processes on
  *                           suspend transitions.
  *
  * Originally from swsusp.
@@ -188,6 +188,26 @@ int freeze_kernel_threads(void)
 	if (error)
 		thaw_kernel_threads();
 	return error;
+}
+
+void thaw_fingerprintd(void)
+{
+	struct task_struct *p;
+
+	pm_freezing = false;
+	pm_nosig_freezing = false;
+
+	read_lock(&tasklist_lock);
+	for_each_process(p) {
+		if (!memcmp(p->comm, "lineage.biometrics.fingerprint.inscreen@1.0-service.xiaomi_trinket", 13)) {
+			__thaw_task(p);
+			break;
+		}
+	}
+	read_unlock(&tasklist_lock);
+
+	pm_freezing = true;
+	pm_nosig_freezing = true;
 }
 
 void thaw_processes(void)
